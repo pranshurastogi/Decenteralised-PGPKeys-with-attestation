@@ -1,0 +1,22 @@
+{
+  "name": "backend-pgp-generation",
+  "version": "1.0.0",
+  "description": "This folder will include PGP generation, encryption, and decryption.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pranshurastogi/Decenteralised-PGPKeys-with-attestation.git"
+  },
+  "author": "Pranshu Rastogi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pranshurastogi/Decenteralised-PGPKeys-with-attestation/issues"
+  },
+  "homepage": "https://github.com/pranshurastogi/Decenteralised-PGPKeys-with-attestation#readme",
+  "dependencies": {
+    "openpgp": "^5.9.0"
+  }
+}
