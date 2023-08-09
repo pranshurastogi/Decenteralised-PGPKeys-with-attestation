@@ -48,6 +48,13 @@ module.exports = {
       allowUnlimitedContractSize: true,
       blockGasLimit: 100000000429720
     },
+    optimism_test: {
+      url: process.env.GOERLI_OPTIMISM || "",
+      accounts: [`0x${process.env.ACCOUNT1}`],
+      chainId: 420,
+      allowUnlimitedContractSize: true,
+      blockGasLimit: 100000000429720
+    },
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN,
