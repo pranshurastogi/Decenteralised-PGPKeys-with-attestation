@@ -1,5 +1,10 @@
 # Decenteralised-PGPKeys-with-attestation
 
+## Deployed on Optimism Goerli Testnet
+https://goerli-optimism.etherscan.io/tx/0xec4d3e42f0f9de7c1e9450d8896e273a142d7dae8433cdf3bc64e8d6cae4823f
+
+## Deployed on Base Goerli Testnet
+https://goerli.basescan.org/tx/0x611a97bcdf125cff7c7c8f3ec6dd37dec10e7a9b02681b9529f56170d543ca71
 
 ## EAS PGP attestator schema
 
