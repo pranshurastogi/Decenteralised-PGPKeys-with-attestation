@@ -6,33 +6,36 @@ pragma solidity ^0.8.0;
  * @dev A decentralized system for storing and attesting PGP keys.
  */
 contract PGPKeyServer {
-
     // Represents each PGP Key with its data, owner, and trust score.
     struct PGPKey {
-        bytes publicKeyData;  // Raw data of the PGP public key
-        address owner;       // Ethereum address of the key owner
-        uint256 trustScore;  // Cumulative trust score for the key based on attestations
+        bytes publicKeyData; // Raw data of the PGP public key
+        address owner; // Ethereum address of the key owner
+        uint256 trustScore; // Cumulative trust score for the key based on attestations
     }
 
     // Structure for Ethereum based attestations
     struct Attestation {
-        address attester;   // Ethereum address of the attesting service/entity
-        bytes32 message;    // Message or hash that was signed for the attestation
-        bytes signature;    // Digital signature from the attester
+        address attester; // Ethereum address of the attesting service/entity
+        bytes32 message; // Message or hash that was signed for the attestation
+        bytes signature; // Digital signature from the attester
+        bytes _AttestationSchemaUID; //Attestation Unique Identifier
     }
 
     // Mapping from PGP key fingerprint to PGPKey structure
     mapping(bytes32 => PGPKey) public keys;
-    
+
     // Double-mapping to keep track of which keys have been attested by which other keys
     mapping(bytes32 => mapping(bytes32 => bool)) public attestations;
-    
+
     // Mapping from PGP key fingerprint to its Ethereum based attestation
     mapping(bytes32 => Attestation) public keyAttestations;
 
     event KeyAdded(bytes32 indexed fingerprint, address indexed owner);
     event KeyRemoved(bytes32 indexed fingerprint, address indexed owner);
-    event KeyAttested(bytes32 indexed fromFingerprint, bytes32 indexed toFingerprint);
+    event KeyAttested(
+        bytes32 indexed fromFingerprint,
+        bytes32 indexed toFingerprint
+    );
 
     function addKey(bytes memory publicKeyData) public {
         bytes32 fingerprint = keccak256(publicKeyData);
@@ -49,9 +52,9 @@ contract PGPKeyServer {
 
     function removeKey(bytes32 fingerprint) public {
         require(keys[fingerprint].owner == msg.sender, "Not the owner");
-        
+
         delete keys[fingerprint];
-        
+
         emit KeyRemoved(fingerprint, msg.sender);
     }
 
@@ -59,15 +62,23 @@ contract PGPKeyServer {
         bytes32 attestingKeyFingerprint; // Placeholder
 
         require(keys[fingerprint].owner != address(0), "Key doesn't exist");
-        require(!attestations[attestingKeyFingerprint][fingerprint], "Already attested");
+        require(
+            !attestations[attestingKeyFingerprint][fingerprint],
+            "Already attested"
+        );
 
         attestations[attestingKeyFingerprint][fingerprint] = true;
-        keys[fingerprint].trustScore += 1; 
+        keys[fingerprint].trustScore += 1;
 
         emit KeyAttested(attestingKeyFingerprint, fingerprint);
     }
 
-    function attestKeyWithEthereum(bytes32 fingerprint, bytes32 message, bytes memory signature) public {
+    function attestKeyWithEthereum(
+        bytes32 fingerprint,
+        bytes32 message,
+        bytes memory signature,
+        bytes memory _AttestationSchemaUID
+    ) public {
         bytes32 attestingKeyFingerprint; // Placeholder
 
         require(keys[fingerprint].owner != address(0), "Key doesn't exist");
@@ -93,11 +104,12 @@ contract PGPKeyServer {
         // Recover the signer's address
         address attester = ecrecover(message, v, r, s);
         require(attester != address(0), "Invalid attestation");
-        
+
         keyAttestations[fingerprint] = Attestation({
             attester: attester,
             message: message,
-            signature: signature
+            signature: signature,
+            _AttestationSchemaUID: _AttestationSchemaUID
         });
 
         keys[fingerprint].trustScore += 1;
@@ -105,38 +117,28 @@ contract PGPKeyServer {
         emit KeyAttested(attestingKeyFingerprint, fingerprint);
     }
 
-/**
- * @dev Allows a user to challenge an attestation if they believe it's fraudulent.
- * For simplicity, this function removes the attestation, but in a more complex system,
- * there would likely be a dispute resolution mechanism.
- * @param fingerprint Keccak256 hash of the PGP key data that was attested to.
- */
-function challengeAttestation(bytes32 fingerprint) public {
-    require(keys[fingerprint].owner != address(0), "Key doesn't exist");
-    
-    // In a real-world scenario, you'd have a more robust mechanism for challenging,
-    // perhaps involving staking, dispute resolution, etc.
-    delete keyAttestations[fingerprint];
-    
-    // Decrement the trust score for the key due to the challenge
-    if(keys[fingerprint].trustScore > 0) {
-        keys[fingerprint].trustScore -= 1;
+    /**
+     * @dev Allows a user to challenge an attestation if they believe it's fraudulent.
+     * @param fingerprint Keccak256 hash of the PGP key data that was attested to.
+     */
+    function challengeAttestation(bytes32 fingerprint) public {
+        require(keys[fingerprint].owner != address(0), "Key doesn't exist");
+
+        delete keyAttestations[fingerprint];
+
+        // Decrement the trust score for the key due to the challenge
+        if (keys[fingerprint].trustScore > 0) {
+            keys[fingerprint].trustScore -= 1;
+        }
     }
-}
 
-/**
- * @dev Manually refines the trust score for a given key.
- * For simplicity, this function just increments the trust score,
- * but in a real-world scenario, you'd have more sophisticated logic
- * based on various factors.
- * @param fingerprint Keccak256 hash of the PGP key data.
- */
-function refineTrustScore(bytes32 fingerprint) public {
-    require(keys[fingerprint].owner != address(0), "Key doesn't exist");
-    
-    // For this example, we're simply incrementing the trust score.
-    // In a real-world application, you'd have complex logic to refine trust scores.
-    keys[fingerprint].trustScore += 1;
-}
+    /**
+     * @dev Manually refines the trust score for a given key.
+     * @param fingerprint Keccak256 hash of the PGP key data.
+     */
+    function refineTrustScore(bytes32 fingerprint) public {
+        require(keys[fingerprint].owner != address(0), "Key doesn't exist");
 
+        keys[fingerprint].trustScore += 1;
+    }
 }
