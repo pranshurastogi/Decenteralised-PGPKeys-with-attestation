@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/pranshurastogi/Decenteralised-PGPKeys-with-attestation#readme",
   "dependencies": {
+    "@ethereum-attestation-service/eas-sdk": "^1.0.0-beta.0",
+    "ethers": "^6.7.0",
     "openpgp": "^5.9.0"
   }
 }
